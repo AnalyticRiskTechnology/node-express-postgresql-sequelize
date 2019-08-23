@@ -9,7 +9,13 @@ var config    = require(__dirname + '/../config/config.json')[env];
 var db        = {};
 
 if (config.use_env_variable) {
-  var sequelize = new Sequelize(process.env[config.use_env_variable], config);
+    var sequelize = new Sequelize({
+	"username": process.env["POSTGRES_USERNAME"],
+	"password": process.env["POSTGRES_PASSWORD"],
+	"database": process.env["POSTGRES_DATABASE"],
+	"host": "postgres",
+	"dialect": "postgres"
+    });
 } else {
   var sequelize = new Sequelize(config.database, config.username, config.password, config);
 }
