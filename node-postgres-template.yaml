@@ -12,7 +12,7 @@ message: |-
 
 metadata:
   annotations:
-    description: An example Node application with a PostgreSQL database. For more
+    description: An example Node application with a PostgreSQL database. 
     iconClass: icon-nodejs
     openshift.io/display-name: Node + PostgreSQL
     openshift.io/long-description: This template defines resources needed to develop
@@ -79,8 +79,9 @@ objects:
       to:
         kind: ImageStreamTag
         name: ${NAME}:latest
-    postCommit:
-      script: npm setup-sequelize && npm migrate
+#    postCommit:
+#      script: npm run migrate
+#      script: npm test
     source:
       contextDir: ${CONTEXT_DIR}
       git:
@@ -128,8 +129,8 @@ objects:
       spec:
         containers:
         - env:
-	  - name: PORT
-	    value: 8080
+          - name: PORT
+            value: "8080"
           - name: DATABASE_SERVICE_NAME
             value: ${DATABASE_SERVICE_NAME}
           - name: DATABASE_ENGINE
@@ -169,6 +170,10 @@ objects:
           #    port: 8080
           #  initialDelaySeconds: 3
           #  timeoutSeconds: 3
+        initContainers:
+        - name: wait-for-services
+          image: busybox
+          command: ['sh', '-cu', 'until nslookup postgresql; do echo waiting for services; sleep 1; done']
           resources:
             limits:
               memory: ${MEMORY_LIMIT}
@@ -252,7 +257,9 @@ objects:
           readinessProbe:
             exec:
               command:
+#              - /opt/rh/rh-postgresql10/root/usr/bin/pg_isready
               - /usr/libexec/check-container
+              - --live
             initialDelaySeconds: 5
             timeoutSeconds: 1
           resources:
