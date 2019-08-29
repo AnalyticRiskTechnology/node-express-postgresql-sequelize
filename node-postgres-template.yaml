@@ -20,7 +20,7 @@ metadata:
       configuration, and database deployment configuration.
     openshift.io/provider-display-name: Red Hat, Inc.
     openshift.io/support-url: https://access.redhat.com
-    tags: quickstart,python,node
+    tags: quickstart,node
     template.openshift.io/bindable: "false"
   creationTimestamp: 2018-11-12T18:33:20Z
   name: node-psql-persistent
@@ -79,9 +79,10 @@ objects:
       to:
         kind: ImageStreamTag
         name: ${NAME}:latest
-#    postCommit:
-#      script: npm run migrate
-#      script: npm test
+    postCommit:
+# can't migrate here as we don't have the environment set up to connect
+# to the DB
+      script: npm test
     source:
       contextDir: ${CONTEXT_DIR}
       git:
@@ -155,25 +156,31 @@ objects:
                 key: node-secret-key
                 name: ${NAME}
           image: ' '
-          #livenessProbe:
-          #  httpGet:
-          #    path: /health
-          #    port: 8080
-          #  initialDelaySeconds: 30
-          #  timeoutSeconds: 3
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 30
+            timeoutSeconds: 3
           name: node-psql-persistent
           ports:
           - containerPort: 8080
-          #readinessProbe:
-          #  httpGet:
-          #    path: /health
-          #    port: 8080
-          #  initialDelaySeconds: 3
-          #  timeoutSeconds: 3
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 3
+            timeoutSeconds: 3
         initContainers:
-        - name: wait-for-services
-          image: busybox
-          command: ['sh', '-cu', 'until nslookup postgresql; do echo waiting for services; sleep 1; done']
+        #- name: wait-for-services
+        #  image: busybox
+        #  command: ['sh', '-cu', 'until nslookup postgresql; do echo waiting for services; sleep 1; done']
+        # this doesn't work as it doesn't know the image
+        # try setting the container name
+        initContainers:
+        - name: migrate
+          image: ${NAME}:latest
+          command: ['npm', 'run', 'migrate']
           resources:
             limits:
               memory: ${MEMORY_LIMIT}
@@ -182,6 +189,7 @@ objects:
         automatic: true
         containerNames:
         - node-psql-persistent
+        - migrate
         from:
           kind: ImageStreamTag
           name: ${NAME}:latest

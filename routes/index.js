@@ -11,6 +11,9 @@ router.get('/', function(req, res, next) {
   res.render('index', { title: 'Express' });
 });
 
+router.get('/health', function(req, res, next) {
+  res.send('OK');
+});
 /* Classroom Router */
 router.get('/api/classroom', classroomController.list);
 router.get('/api/classroom/:id', classroomController.getById);
