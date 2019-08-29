@@ -4,7 +4,9 @@
   "private": true,
   "scripts": {
       "start": "node ./bin/www",
-      "test": "node -v"
+      "test": "node -v",
+      "setup-sequelize": "sed -e '/config/s/json/js/' .sequelizerc > sequelizerc &&  mv sequelizerc .sequelizerc",
+      "migrate": "bash -c './node_modules/sequelize-cli/lib/sequelize db:migrate'"
   },
   "dependencies": {
     "cookie-parser": "~1.4.3",

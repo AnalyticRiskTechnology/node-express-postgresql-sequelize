@@ -80,7 +80,7 @@ objects:
         kind: ImageStreamTag
         name: ${NAME}:latest
     postCommit:
-      script: npm test
+      script: npm setup-sequelize && npm migrate
     source:
       contextDir: ${CONTEXT_DIR}
       git:
@@ -128,6 +128,8 @@ objects:
       spec:
         containers:
         - env:
+	  - name: PORT
+	    value: 8080
           - name: DATABASE_SERVICE_NAME
             value: ${DATABASE_SERVICE_NAME}
           - name: DATABASE_ENGINE
@@ -152,21 +154,21 @@ objects:
                 key: node-secret-key
                 name: ${NAME}
           image: ' '
-          livenessProbe:
-            httpGet:
-              path: /health
-              port: 8080
-            initialDelaySeconds: 30
-            timeoutSeconds: 3
+          #livenessProbe:
+          #  httpGet:
+          #    path: /health
+          #    port: 8080
+          #  initialDelaySeconds: 30
+          #  timeoutSeconds: 3
           name: node-psql-persistent
           ports:
           - containerPort: 8080
-          readinessProbe:
-            httpGet:
-              path: /health
-              port: 8080
-            initialDelaySeconds: 3
-            timeoutSeconds: 3
+          #readinessProbe:
+          #  httpGet:
+          #    path: /health
+          #    port: 8080
+          #  initialDelaySeconds: 3
+          #  timeoutSeconds: 3
           resources:
             limits:
               memory: ${MEMORY_LIMIT}
