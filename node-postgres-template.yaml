@@ -175,15 +175,21 @@ objects:
         #- name: wait-for-services
         #  image: busybox
         #  command: ['sh', '-cu', 'until nslookup postgresql; do echo waiting for services; sleep 1; done']
-        # this doesn't work as it doesn't know the image
-        # try setting the container name
-        initContainers:
+        # the image is only found if the container name is listed under triggers below
         - name: migrate
           image: ${NAME}:latest
-          command: ['npm', 'run', 'migrate']
-          resources:
-            limits:
-              memory: ${MEMORY_LIMIT}
+          command: ['/bin/bash', '-c', '(. /etc/profile; . /etc/bashrc; env; npm run migrate); true']
+	  env:
+          - name: DATABASE_SERVICE_NAME
+            value: ${DATABASE_SERVICE_NAME}
+          - name: DATABASE_ENGINE
+            value: ${DATABASE_ENGINE}
+          - name: DATABASE_NAME
+            value: ${DATABASE_NAME}
+          - name: DATABASE_USER
+    resources:
+      limits:
+        memory: ${MEMORY_LIMIT}
     triggers:
     - imageChangeParams:
         automatic: true
