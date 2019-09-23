@@ -12,7 +12,7 @@ message: |-
 
 metadata:
   annotations:
-    description: An example Node application with a PostgreSQL database. 
+    description: An example Node application with a PostgreSQL database.
     iconClass: icon-nodejs
     openshift.io/display-name: Node + PostgreSQL
     openshift.io/long-description: This template defines resources needed to develop
@@ -75,6 +75,9 @@ objects:
       template.alpha.openshift.io/wait-for-ready: "true"
     name: ${NAME}
   spec:
+    resources:
+      limits:
+        memory: ${MEMORY_LIMIT}    
     output:
       to:
         kind: ImageStreamTag
@@ -88,12 +91,19 @@ objects:
       git:
         ref: ${SOURCE_REPOSITORY_REF}
         uri: ${SOURCE_REPOSITORY_URL}
+      #secrets:
+      #  - secret:
+      #      name: github-secret
       type: Git
+      sourceSecret:
+        name: github-secret
     strategy:
       sourceStrategy:
         env:
         - name: NPM_MIRROR
           value: ${NPM_MIRROR}
+        - name: YARN_ENABLED
+          value: "true"
         from:
           kind: ImageStreamTag
           name: nodejs:${NODEJS_VERSION}
@@ -130,6 +140,8 @@ objects:
       spec:
         containers:
         - env:
+          - name: NODE_ENV
+            value: "production"
           - name: PORT
             value: "8080"
           - name: DATABASE_SERVICE_NAME
@@ -138,6 +150,8 @@ objects:
             value: ${DATABASE_ENGINE}
           - name: DATABASE_NAME
             value: ${DATABASE_NAME}
+          - name: JWT_SECRET
+            value: ${NODE_SECRET_KEY}
           - name: DATABASE_USER
             valueFrom:
               secretKeyRef:
@@ -336,7 +350,7 @@ parameters:
   displayName: Memory Limit
   name: MEMORY_LIMIT
   required: true
-  value: 512Mi
+  value: 2Gi
 - description: Maximum amount of memory the PostgreSQL container can use.
   displayName: Memory Limit (PostgreSQL)
   name: MEMORY_POSTGRESQL_LIMIT
